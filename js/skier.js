@@ -5,8 +5,9 @@ class Skier extends GameObject {
     constructor() {
         super();
 
-        this.skierDirection = 5;
+        this.skierDirection = DIRECTION.RIGHT;
         this.skierSpeed = 8;
+        this.skierJumpAsset = 'skierJump1';
 
         this.assets = {
             'skierCrash': 'img/skier_crash.png',
@@ -15,18 +16,54 @@ class Skier extends GameObject {
             'skierDown': 'img/skier_down.png',
             'skierRightDown': 'img/skier_right_down.png',
             'skierRight': 'img/skier_right.png',
+            'skierJump1': 'img/skier_jump_1.png',
+            'skierJump2': 'img/skier_jump_2.png',
+            'skierJump3': 'img/skier_jump_3.png',
+            'skierJump4': 'img/skier_jump_5.png',
         };
     }
     
     reset () {
-        this.skierDirection = 5;
+        this.skierDirection = DIRECTION.RIGHT;
         this.skierSpeed = 8;
         this.x = 0;
         this.y = 0;
     }
 
+    jumpSkier()
+    {
+        this.skierDirection = DIRECTION.JUMP;
+        var skiJumpCounter = 0;
+
+        var jumpInterval = setInterval(() => {
+            
+            if (skiJumpCounter < SKI_JUMP.length)
+            {
+                this.skierJumpAsset = SKI_JUMP[skiJumpCounter];
+                skiJumpCounter++;   
+            }
+            else {
+                this.skierDirection = DIRECTION.DOWN;
+                clearInterval(jumpInterval);
+            }
+        },250);
+    }
+
+    isJumping()
+    {
+        return (this.skierDirection === DIRECTION.JUMP);
+    }
+
     getSkierAsset() {
-        return ASSET_ENUM[this.skierDirection];
+
+        var skierAsset = ASSET_ENUM[this.skierDirection];
+
+        if (this.skierDirection === DIRECTION.JUMP)
+        {
+            skierAsset = this.skierJumpAsset; 
+        }
+
+        return skierAsset;
     }
 
     getSkierRect(gameWidth,gameHeight) {
@@ -60,11 +97,12 @@ class Skier extends GameObject {
                 this.y += Math.round(this.skierSpeed / 1.4142);
                 break;
             case DIRECTION.DOWN:
+            case DIRECTION.JUMP:
                 this.y += this.skierSpeed;
                 break;
             case DIRECTION.RIGHT_DOWN:
-                this.x += this.skierSpeed / 1.4142;
-                this.y += this.skierSpeed / 1.4142;
+                this.x += Math.round(this.skierSpeed / 1.4142);
+                this.y += Math.round(this.skierSpeed / 1.4142);
                 break;
         }
     }
@@ -124,15 +162,20 @@ const DIRECTION = {
     "DOWN": 3,
     "RIGHT_DOWN": 4,
     "RIGHT": 5,
-    "UP": 6
+    "JUMP": 6
 };
 
 Skier.DIRECTION = DIRECTION;
 
 // Image name enum 
 const ASSET_ENUM = ['skierCrash','skierLeft','skierLeftDown','skierDown',
-    'skierRightDown','skierRight'];
+    'skierRightDown','skierRight','skierJump'];
 
 Skier.ASSET_ENUM = ASSET_ENUM;
+
+const SKI_JUMP = ['skierJump1','skierJump2','skierJump3',
+    'skierJump4'];
+
+Skier.SKI_JUMP = SKI_JUMP;
 
 export default Skier;

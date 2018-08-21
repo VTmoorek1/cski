@@ -2,7 +2,7 @@ import Obstacle from './obstacle.js';
 
 class ObstacleHandler {
 
-    constructor(skier,gameWidth,gameHeight) {
+    constructor(skier, gameWidth, gameHeight) {
         this.obstacles = [];
         this.mainSkier = skier;
         this.gameWidth = gameWidth;
@@ -13,14 +13,12 @@ class ObstacleHandler {
         this.obstacles = [];
     }
 
-    static getPlainObstacle()
-    {
-        return new Obstacle({x:0,y:0});
+    static getPlainObstacle() {
+        return new Obstacle({ x: 0, y: 0 });
     }
 
     checkToPlaceObstacle() {
-        if (this.mainSkier.isMoving())
-        {
+        if (this.mainSkier.isMoving()) {
             this.placeNewObstacle(this.mainSkier.getDirection());
         }
     };
@@ -30,16 +28,16 @@ class ObstacleHandler {
         var skierPos = this.mainSkier.getPosition();
         var self = this;
 
-        _.each(this.obstacles, function(obstacle) {
+        _.each(this.obstacles, function (obstacle) {
             var obstacleRect = obstacle.getObstacleRect();
             var x = obstacleRect.x - skierPos.x - obstacleRect.width / 2;
             var y = obstacleRect.y - skierPos.y - obstacleRect.height / 2;
 
-            if(x < -100 || x > self.gameWidth + 50 || y < -100 || y > self.gameHeight + 50) {
+            if (x < -100 || x > self.gameWidth + 50 || y < -100 || y > self.gameHeight + 50) {
                 return;
             }
 
-            obstacle.draw(ctx,x,y);
+            obstacle.draw(ctx, x, y);
 
             newObstacles.push(obstacle);
         });
@@ -55,11 +53,11 @@ class ObstacleHandler {
         var minY = this.gameHeight / 2 + 100;
         var maxY = this.gameHeight + 50;
 
-        for(var i = 0; i < numberObstacles; i++) {
+        for (var i = 0; i < numberObstacles; i++) {
             this.placeRandomObstacle(minX, maxX, minY, maxY);
         }
 
-        this.obstacles = _.sortBy(this.obstacles, function(obstacle) {
+        this.obstacles = _.sortBy(this.obstacles, function (obstacle) {
             var obstacleRect = obstacle.getObstacleRect();
             return obstacleRect.y + obstacleRect.height;
         });
@@ -67,7 +65,7 @@ class ObstacleHandler {
 
     placeNewObstacle(direction) {
         var shouldPlaceObstacle = _.random(1, 8);
-        if(shouldPlaceObstacle !== 8) {
+        if (shouldPlaceObstacle !== 8) {
             return;
         }
 
@@ -77,31 +75,31 @@ class ObstacleHandler {
         var topEdge = skierPos.y;
         var bottomEdge = skierPos.y + this.gameHeight;
 
-        switch(direction) {
+        switch (direction) {
             case 1: // left
-            this.placeRandomObstacle(leftEdge - 50, leftEdge, topEdge, bottomEdge);
+                this.placeRandomObstacle(leftEdge - 50, leftEdge, topEdge, bottomEdge);
                 break;
             case 2: // left down
-            this.placeRandomObstacle(leftEdge - 50, leftEdge, topEdge, bottomEdge);
-            this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + 50);
+                this.placeRandomObstacle(leftEdge - 50, leftEdge, topEdge, bottomEdge);
+                this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + 50);
                 break;
             case 3: // down
-            this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + 50);
+                this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + 50);
                 break;
             case 4: // right down
-            this.placeRandomObstacle(rightEdge, rightEdge + 50, topEdge, bottomEdge);
-            this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + 50);
+                this.placeRandomObstacle(rightEdge, rightEdge + 50, topEdge, bottomEdge);
+                this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + 50);
                 break;
             case 5: // right
-            this.placeRandomObstacle(rightEdge, rightEdge + 50, topEdge, bottomEdge);
+                this.placeRandomObstacle(rightEdge, rightEdge + 50, topEdge, bottomEdge);
                 break;
             case 6: // up
-            this.placeRandomObstacle(leftEdge, rightEdge, topEdge - 50, topEdge);
+                this.placeRandomObstacle(leftEdge, rightEdge, topEdge - 50, topEdge);
                 break;
         }
     };
 
-   placeRandomObstacle(minX, maxX, minY, maxY) {
+    placeRandomObstacle(minX, maxX, minY, maxY) {
         var obstacleIndex = _.random(0, Obstacle.OBSTACLE_TYPES.length - 1);
 
         var position = this.calculateOpenPosition(minX, maxX, minY, maxY);
@@ -113,11 +111,11 @@ class ObstacleHandler {
         var x = _.random(minX, maxX);
         var y = _.random(minY, maxY);
 
-        var foundCollision = _.find(this.obstacles, function(obstacle) {
+        var foundCollision = _.find(this.obstacles, function (obstacle) {
             return x > (obstacle.x - 50) && x < (obstacle.x + 50) && y > (obstacle.y - 50) && y < (obstacle.y + 50);
         });
 
-        if(foundCollision) {
+        if (foundCollision) {
             return this.calculateOpenPosition(minX, maxX, minY, maxY);
         }
         else {
@@ -129,16 +127,22 @@ class ObstacleHandler {
     };
 
     checkIfSkierHitObstacle() {
-        var skierRect = this.mainSkier.getSkierRect(this.gameWidth,this.gameHeight);
+        var skierRect = this.mainSkier.getSkierRect(this.gameWidth, this.gameHeight);
 
-        var collision = _.find(this.obstacles, function(obstacle) {
+        var collision = _.find(this.obstacles, function (obstacle) {
             var obstacleBounds = obstacle.getObstacleBounds();
 
             return ObstacleHandler.intersectRect(skierRect, obstacleBounds);
         });
 
-        if(collision) {
-            this.mainSkier.skierCrashed();
+        if (collision && this.mainSkier.isJumping() === false) {
+            if (collision.isJump()) {
+                // Jump skier
+                this.mainSkier.jumpSkier();
+            }
+            else {
+                this.mainSkier.skierCrashed();
+            }
         }
     };
 

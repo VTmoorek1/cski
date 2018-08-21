@@ -9,12 +9,18 @@ class Obstacle extends GameObject {
             'tree': 'img/tree_1.png',
             'treeCluster': 'img/tree_cluster.png',
             'rock1': 'img/rock_1.png',
-            'rock2': 'img/rock_2.png'
+            'rock2': 'img/rock_2.png',
+            'jumpRamp' : 'img/jump_ramp.png'
         };
 
         this.obstacleType = _.random(0, OBSTACLE_TYPES.length - 1);
         this.x = position.x;
         this.y = position.y;
+    }
+
+    isJump()
+    {
+        return (this.obstacleType === 4);
     }
 
     getObstacleRect() {
@@ -46,11 +52,6 @@ class Obstacle extends GameObject {
         ctx.drawImage(obstacleImage, x, y, obstacleImage.width, obstacleImage.height);
     }
 
-    setPosition(x,y)
-    {
-        this.x = x;
-        this.y = y;
-    }
 }
 
 // Direction enum and freeze object changes
@@ -58,7 +59,8 @@ const OBSTACLE_TYPES = [
     'tree',
     'treeCluster',
     'rock1',
-    'rock2'
+    'rock2',
+    'jumpRamp'
 ];
 
 Obstacle.OBSTACLE_TYPES = OBSTACLE_TYPES;

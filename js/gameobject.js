@@ -58,6 +58,13 @@ class GameObject {
         return {x : this.x, y : this.y};
     }
 
+
+    setPosition(x,y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+
 };
 
 const loadedAssets = {};
