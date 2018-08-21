@@ -49,6 +49,10 @@ class GameObject {
         throw new Error('You have to implement the method draw');
     }
 
+    reset() {
+        throw new Error('You have to implement the method draw');
+    }
+
     getPosition()
     {
         return {x : this.x, y : this.y};

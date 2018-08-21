@@ -9,6 +9,10 @@ class ObstacleHandler {
         this.gameHeight = gameHeight;
     }
 
+    reset() {
+        this.obstacles = [];
+    }
+
     static getPlainObstacle()
     {
         return new Obstacle({x:0,y:0});

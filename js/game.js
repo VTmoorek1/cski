@@ -46,6 +46,34 @@ $(document).ready(function() {
             }
     }
 
+    function reset() {
+        score = 0;
+        obstacleHandler.reset();
+        mainSkier.reset();
+        clearCanvas();
+        obstacleHandler.placeInitialObstacles();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function checkGameOver() {
+
+        if (mainSkier.getDirection() === Skier.DIRECTION.CRASHED)
+        {
+            $.confirm({
+                title: 'GAME OVER!',
+                content: 'YARD SALE!',
+                boxWidth: '200px',
+                useBootstrap: false,
+                buttons: {
+                    "Play Again": function () {
+                        // Reset and save high score
+                        reset();
+                    }
+                }
+            });
+        }
+    }
+
     var gameLoop = function() {
 
         ctx.save();
@@ -69,9 +97,14 @@ $(document).ready(function() {
 
         drawScore();
 
+        checkGameOver();
+
         ctx.restore();
 
-        requestAnimationFrame(gameLoop);
+        if (mainSkier.getDirection() !== Skier.DIRECTION.CRASHED)
+        {
+            requestAnimationFrame(gameLoop);
+        }
     };
    
 

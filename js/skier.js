@@ -17,6 +17,13 @@ class Skier extends GameObject {
             'skierRight': 'img/skier_right.png',
         };
     }
+    
+    reset () {
+        this.skierDirection = 5;
+        this.skierSpeed = 8;
+        this.x = 0;
+        this.y = 0;
+    }
 
     getSkierAsset() {
         return ASSET_ENUM[this.skierDirection];
