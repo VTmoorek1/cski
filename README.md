@@ -53,3 +53,31 @@ And don't think you have to stop there. If you're having fun with this and have 
 you want and show us what you can do! 
 
 We are looking forward to see what you come up with!
+
+########## Ceros Ski Code Challenge Updated
+
+The code was refactored into an object oriented design style. There is now a GameObject class which is the super class
+of all other game objects (Skier, Rhino, Obstacle). An ObstacleHandler class was also added to manage the multiple 
+obstacles added to the canvas.  This type of design allows the game module to focus on game behavior and be less concerned with
+Game Object internals. 
+
+New Features:
+
+-Implemented jumps which will allow you to jump over obstacles and gain a bonus score
+-Implemented the rhino which will eat the skier if they do not stop or jump after a random amount of time  
+-Information dialogs
+-Title bar with high score tracking
+-Added ability to pause and resume with space button
+-Added a game over condition (crashed or eaten by rhino) with reset
+-Added a scoring system
+
+Bug Fixes:
+
+-Left after crashing into obstacle 
+-Rounding of skiers position when going in right down position
+-Skier can now only go down the mountain
+
+Other Known Bugs: 
+
+-Not mobile compatible
+-Resizing game window stays in original size

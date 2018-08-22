@@ -1,5 +1,12 @@
+'use strict';
+
 import GameObject from './gameobject.js';
 
+/**
+* obstacle.js - Class for an obstacle object which could be a tree/trees,
+* a rock or a jump
+* 
+*/
 class Obstacle extends GameObject {
 
     constructor(position) {
@@ -18,11 +25,36 @@ class Obstacle extends GameObject {
         this.y = position.y;
     }
 
+    /**
+    * reset(): Just resets coords
+    * 
+    */
+    reset () {
+        this.x = 0;
+        this.y = 0;
+    }
+
+    // This particular gameobject does not move
+    move() {   
+    }
+
+    /**
+    * isJump(): Is the obstacle a jump which is obstacle type 4
+    * 
+    * @return {boolean} is the obstacle type 4
+    * 
+    */
     isJump()
     {
         return (this.obstacleType === 4);
     }
 
+    /**
+    * getObsctacleRect(): get rectangle of obstacle
+    * 
+    * @return {object} - x,y, width, and height 
+    * 
+    */
     getObstacleRect() {
         var obstacleImage = GameObject.loadedAssets[OBSTACLE_TYPES[this.obstacleType]];
 
@@ -34,6 +66,12 @@ class Obstacle extends GameObject {
         };
     }
 
+    /**
+    * getObsctacleBounds(): get bounds of obstacle
+    * 
+    * @return {object} - left,right,top,bottom 
+    * 
+    */
     getObstacleBounds() {
         var obstacleImage = GameObject.loadedAssets[OBSTACLE_TYPES[this.obstacleType]];
 
@@ -45,6 +83,13 @@ class Obstacle extends GameObject {
         };
     }
 
+    /**
+    * draw(): draw the obstacle
+    * 
+    * @param {object} ctx - canvas context
+    * @param {multiple} args - first 2 args should be a calculated x and y on screen from game 
+    * 
+    */
     draw(ctx,...args) {
         var x = args[0];
         var y = args[1];
@@ -54,7 +99,7 @@ class Obstacle extends GameObject {
 
 }
 
-// Direction enum and freeze object changes
+// Obstacle type enum
 const OBSTACLE_TYPES = [
     'tree',
     'treeCluster',

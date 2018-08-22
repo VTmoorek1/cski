@@ -1,29 +1,60 @@
+'use strict';
+
+/**
+* obstaclehandler.js: Maintains and conatins obstacles in game. Also controls collisions with skier
+* 
+*/
+
 import Obstacle from './obstacle.js';
+import Skier from './skier.js';
 
 class ObstacleHandler {
 
     constructor(skier, gameWidth, gameHeight) {
+
+        // Contains all of the obstacles, the game dimensions, and game skier
         this.obstacles = [];
         this.mainSkier = skier;
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
     }
 
+    /**
+    * reset(): reset by clearing obstacle array
+    * 
+    */
     reset() {
         this.obstacles = [];
     }
 
+    /**
+    * getPlainObstacle(): get obstacle with no position 
+    * 
+    * @return {object} - obstacle with 0 pos
+    * 
+    */
     static getPlainObstacle() {
         return new Obstacle({ x: 0, y: 0 });
     }
 
+    /**
+    * checkToPlaceObstacle(): A simple check to place a new obstacle if
+    * skier is moving downhill
+    * 
+    */
     checkToPlaceObstacle() {
         if (this.mainSkier.isMoving()) {
             this.placeNewObstacle(this.mainSkier.getDirection());
         }
     };
 
-    drawObstacles(ctx) {
+    /**
+    * draw(): draw obstacles based on obstacle and skier position 
+    * 
+    * @param {object} ctx - canvas context
+    * 
+    */
+    draw(ctx) {
         var newObstacles = [];
         var skierPos = this.mainSkier.getPosition();
         var self = this;
@@ -45,6 +76,10 @@ class ObstacleHandler {
         this.obstacles = newObstacles;
     };
 
+    /**
+    * placeIntialObstacles(): Create intial obstacles at random 
+    * 
+    */
     placeInitialObstacles() {
         var numberObstacles = Math.ceil(_.random(5, 7) * (this.gameWidth / 800) * (this.gameHeight / 500));
 
@@ -63,6 +98,11 @@ class ObstacleHandler {
         });
     };
 
+    /**
+    * placeNewObstacle(): Create new obstacle based on skier direction 
+    * 
+    * @param {number} direction - direction of skier travel
+    */
     placeNewObstacle(direction) {
         var shouldPlaceObstacle = _.random(1, 8);
         if (shouldPlaceObstacle !== 8) {
@@ -76,37 +116,51 @@ class ObstacleHandler {
         var bottomEdge = skierPos.y + this.gameHeight;
 
         switch (direction) {
-            case 1: // left
+            case Skier.DIRECTION.LEFT: // left
                 this.placeRandomObstacle(leftEdge - 50, leftEdge, topEdge, bottomEdge);
                 break;
-            case 2: // left down
+            case Skier.DIRECTION.LEFT_DOWN: // left down
                 this.placeRandomObstacle(leftEdge - 50, leftEdge, topEdge, bottomEdge);
                 this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + 50);
                 break;
-            case 3: // down
+            case Skier.DIRECTION.DOWN: // down
                 this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + 50);
                 break;
-            case 4: // right down
+            case Skier.DIRECTION.RIGHT_DOWN: // right down
                 this.placeRandomObstacle(rightEdge, rightEdge + 50, topEdge, bottomEdge);
                 this.placeRandomObstacle(leftEdge, rightEdge, bottomEdge, bottomEdge + 50);
                 break;
-            case 5: // right
+            case Skier.DIRECTION.RIGHT: // right
                 this.placeRandomObstacle(rightEdge, rightEdge + 50, topEdge, bottomEdge);
-                break;
-            case 6: // up
-                this.placeRandomObstacle(leftEdge, rightEdge, topEdge - 50, topEdge);
                 break;
         }
     };
 
+    /**
+    * placeRandomObstacle(): Create random obstacle based on open postion and bounds 
+    * 
+    * @param {number} minX - minimum X coord to place obstacle
+    * @param {number} minY - minimum Y coord to place obstacle
+    * @param {number} maxX - maximum X coord to place obstacle
+    * @param {number} maxY - maximum Y coord to place obstacle
+    * 
+    */
     placeRandomObstacle(minX, maxX, minY, maxY) {
-        var obstacleIndex = _.random(0, Obstacle.OBSTACLE_TYPES.length - 1);
 
         var position = this.calculateOpenPosition(minX, maxX, minY, maxY);
 
         this.obstacles.push(new Obstacle(position));
     };
 
+    /**
+    * calculateOpenPositon(): find a position within bounds that does not collide with other objects 
+    * 
+    * @param {number} minX - minimum X coord to place obstacle
+    * @param {number} minY - minimum Y coord to place obstacle
+    * @param {number} maxX - maximum X coord to place obstacle
+    * @param {number} maxY - maximum Y coord to place obstacle
+    * 
+    */
     calculateOpenPosition(minX, maxX, minY, maxY) {
         var x = _.random(minX, maxX);
         var y = _.random(minY, maxY);
@@ -126,6 +180,10 @@ class ObstacleHandler {
         }
     };
 
+    /**
+    * checkIfSkierHitObstacle(): check if the skier hit an obstacle 
+    *  
+    */
     checkIfSkierHitObstacle() {
         var skierRect = this.mainSkier.getSkierRect(this.gameWidth, this.gameHeight);
 
@@ -135,6 +193,8 @@ class ObstacleHandler {
             return ObstacleHandler.intersectRect(skierRect, obstacleBounds);
         });
 
+        // If there is a collision while skier is not jump then
+        // jump skier if obstacle is a jump or crash them
         if (collision && this.mainSkier.isJumping() === false) {
             if (collision.isJump()) {
                 // Jump skier
@@ -146,6 +206,13 @@ class ObstacleHandler {
         }
     };
 
+    /**
+    * intersectRect(): check if the rectangles intersect 
+    *  
+    * @param {object} r1 - first rectangle to check
+    * @param {object} r2 - second rectangle to check
+    * @return {boolean} true or false if rectangles intersect
+    */
     static intersectRect(r1, r2) {
         return !(r2.left > r1.right ||
             r2.right < r1.left ||

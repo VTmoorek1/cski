@@ -1,3 +1,10 @@
+'use strict';
+
+/**
+ * game.js: Main game module 
+ * 
+ */
+
 import Skier from './skier.js';
 import GameObject from './gameobject.js';
 import ObstacleHandler from './obstaclehandler.js';
@@ -5,7 +12,7 @@ import Rhino from './rhino.js';
 
 $(document).ready(function () {
 
-    // Score variables
+    // Score variables and load high score if in browser local storage
     var score = 0;
     const SCORE_INCREMENT = 1;
     const BONUS_SCORE_INCREMENT = 10;
@@ -14,7 +21,9 @@ $(document).ready(function () {
 
     // Ski counter
     var skiCounter = 0;
-    const RHINO_COUNT = 200; //_.random(5000,10000);
+
+    // Randomize when rhino eats 
+    const RHINO_COUNT = _.random(500,1000);
 
     // Game and canvas variables
     const HEADER_HEIGHT = 70;
@@ -38,6 +47,10 @@ $(document).ready(function () {
     var obstacleHandler = new ObstacleHandler(mainSkier, gameWidth, gameHeight);
     var rhino = new Rhino(gameWidth, gameHeight);
 
+    /**
+    * drawScore(): Draws the current score on the last 1/6th of the canvas
+    * 
+    */
     function drawScore() {
         ctx.font = "16px Jua";
         ctx.fillStyle = "blue";
@@ -48,9 +61,15 @@ $(document).ready(function () {
         ctx.clearRect(0, 0, gameWidth, gameHeight);
     };
 
-    // Updates score as skier progresses down mountain
+
+    /**
+    * calculateScore(): Update score as skier is moving or jumping
+    * 
+    */ 
     function calculateScore() {
-        //Only change score if skier is pointed down hill
+
+        // Only change score if skier is pointed down hill or 
+        // bonus score while jumping
         if (mainSkier.isJumping()) {
             score += BONUS_SCORE_INCREMENT;
         }
@@ -59,6 +78,11 @@ $(document).ready(function () {
         }
     }
 
+    /**
+    * loadHighScore(): Load high score from browser local score and place in 
+    * high score element
+    * 
+    */ 
     function loadHighScore() {
         var highScoreStr = window.localStorage.getItem("highScore");
 
@@ -68,6 +92,11 @@ $(document).ready(function () {
         }
     }
 
+    /**
+    * saveHighScore(): Save high score in browser local storage if current score
+    * is greater than the high score and update high score element  
+    * 
+    */ 
     function saveHighScore() {
         if (score > highScore) {
             highScore = score;
@@ -76,6 +105,11 @@ $(document).ready(function () {
         }
     }
 
+    /**
+    * createPauseDialog(): Create JConfirm pause dialog. Must call multiple times
+    * since resources are released when close() is called.
+    * 
+    */ 
     function createPauseDialog() {
         pauseDialog = $.confirm({
             lazyOpen: true,
@@ -91,8 +125,15 @@ $(document).ready(function () {
         });
     }
 
+    /**
+    * togglePause(): Pauses game if able
+    * 
+    */
     function togglePause() {
-        if (mainSkier.getDirection() !== Skier.DIRECTION.CRASHED) {
+
+        // Cant pause while jumping or if rhino is eating or crashed
+        if (mainSkier.getDirection() !== Skier.DIRECTION.CRASHED &&
+                 mainSkier.isJumping() === false && rhino.isRhinoEating() === false) {
             paused = !paused;
 
             if (!paused) {
@@ -108,6 +149,10 @@ $(document).ready(function () {
         }
     }
 
+    /**
+    * reset(): Reset original game state and seset game objects to start over 
+    * 
+    */
     function reset() {
         score = 0;
         obstacleHandler.reset();
@@ -118,12 +163,17 @@ $(document).ready(function () {
         requestAnimationFrame(gameLoop);
     }
 
+    /**
+    * checkGameOver(): If the skier is crashed or the rhino has eaten then its 
+    * game over. Save the high score, show the game over dialog and reset if play
+    * again button is pressed 
+    * 
+    */
     function checkGameOver() {
 
         var contentMessage;
 
         if (mainSkier.getDirection() === Skier.DIRECTION.CRASHED) {
-            saveHighScore();
             contentMessage = 'YARD SALE!!!!!';
         }
         else if (rhino.rhinoMode === Rhino.RHINO_MODE.HAS_EATEN)
@@ -133,6 +183,7 @@ $(document).ready(function () {
 
         if (contentMessage)
         {
+            saveHighScore();
             $.confirm({
                 title: 'GAME OVER!',
                 content: contentMessage,
@@ -148,26 +199,44 @@ $(document).ready(function () {
         }
     }
 
+    /**
+    * calculateSkiCounter(): Update ski counter which tracks how long the skier has been 
+    * skiing or reset if you jump or stop and rhino is not active 
+    * 
+    */
     function calculateSkiCounter() {
         if (mainSkier.isMoving()) {
             skiCounter++;
         }
-        else {
+        else if (rhino.isRhinoActive() === false){
             skiCounter = 0;
         }
     }
 
+    /**
+    * checkDrawRhino(): Check if the rhino should start to run. If its running then check
+    * if it should eat. 
+    * 
+    * @param {object} ctx - canvas context to draw on 
+    * 
+    */
     function checkDrawRhino(ctx) {
 
+        // Skier count activates rhino 
         if (skiCounter > RHINO_COUNT) {
+
+            // Only eat animate once if rhino reaches skier and hasnt eaten 
             if (rhino.x <= gameWidth / 2 && rhino.rhinoMode !== Rhino.RHINO_MODE.EAT &&
                 rhino.rhinoMode !== Rhino.RHINO_MODE.HAS_EATEN) {
                 rhino.rhinoEat();
             }
             else if (rhino.rhinoMode === Rhino.RHINO_MODE.SLEEP || 
                 rhino.rhinoMode === Rhino.RHINO_MODE.RUN) {
-                rhino.moveRhino();
 
+                // Only move if rhino was sleeping or is running    
+                rhino.move();
+
+                // Only animate once if rhino hasnt run
                 if (rhino.rhinoMode !== Rhino.RHINO_MODE.RUN) {
                     rhino.rhinoRun();
                 }
@@ -177,6 +246,10 @@ $(document).ready(function () {
         }
     }
 
+    /**
+    * gameLoop(): Main game loop. Move and draw game objects
+    *
+    */
     var gameLoop = function () {
 
         ctx.save();
@@ -186,9 +259,10 @@ $(document).ready(function () {
 
         clearCanvas();
 
+        // Dont move canvas if rhino is eating
         if (rhino.rhinoMode !== Rhino.RHINO_MODE.EAT && 
             rhino.rhinoMode !== Rhino.RHINO_MODE.HAS_EATEN) {
-            mainSkier.moveSkier();
+            mainSkier.move();
 
             obstacleHandler.checkToPlaceObstacle();
 
@@ -199,7 +273,7 @@ $(document).ready(function () {
             calculateScore();
         }
 
-        obstacleHandler.drawObstacles(ctx);
+        obstacleHandler.draw(ctx);
 
         drawScore();
 
@@ -211,16 +285,29 @@ $(document).ready(function () {
 
         ctx.restore();
 
+        // Only continue game loop if not paused and not game over condition
         if (mainSkier.getDirection() !== Skier.DIRECTION.CRASHED && !paused && 
                 rhino.rhinoMode !== Rhino.RHINO_MODE.HAS_EATEN) {
             requestAnimationFrame(gameLoop);
         }
     };
 
+    /**
+    * isInputAllowed(): Check if the rhino should start to run. If its running then check
+    * if it should eat. 
+    * 
+    * @return ctx {Boolean} Is not paused and skier is not jumping 
+    * 
+    */
     function isInputAllowed() {
         return !paused && mainSkier.isJumping() === false;
     }
 
+    /**
+    * setupKeyHandler(): Grab left, down, right, and space key down events to move skier
+    * and pause 
+    * 
+    */
     var setupKeyhandler = function () {
         $(window).keydown(function (event) {
 
@@ -255,25 +342,57 @@ $(document).ready(function () {
                     event.preventDefault();
                     break;
                 case 32: // space
-
-                    // Cant pause while jumping or if rhino is eating
-                    if (mainSkier.isJumping() === false && rhino.isRhinoEating() === false) {
-                        togglePause();
-                    }
+                    togglePause();
                     event.preventDefault();
                     break;
             }
         });
     };
 
+    /**
+    * showInfoThenStart(): Show the game rules to user and then start the game
+    * 
+    * @param {function} start - Callback function to start the game   
+    * 
+    */
+    function showInfoThenStart(start)
+    {
+
+        var contentMessage = "Here is the scoop: " +
+            "Ski down the mountain and don't hit the obstacles to increase your score. " +
+            "Hit cool jumps and jump over obstacles for bonus points. " +
+            "Ski for too long without taking a break or hitting a " +
+            "jump and you will be eaten. You can pause by hitting space";
+
+        $.confirm({
+            title: 'Hi There!',
+            content: contentMessage,
+            boxWidth: '200px',
+            useBootstrap: false,
+            buttons: {
+                "Start": function () {
+                    // Start
+                    start();
+                }
+            }
+        });
+    }
+
+    /**
+    * initGame(): Add key handler, load game assets from game objects, place initial obstacles
+    * and start game loop  
+    * 
+    */
     var initGame = function () {
         setupKeyhandler();
 
-        GameObject.loadGameObjectAssets(() => {
-            obstacleHandler.placeInitialObstacles();
-
-            requestAnimationFrame(gameLoop);
-        }, mainSkier, ObstacleHandler.getPlainObstacle(), rhino);
+        showInfoThenStart(() => {
+            GameObject.loadGameObjectAssets(() => {
+                obstacleHandler.placeInitialObstacles();
+    
+                requestAnimationFrame(gameLoop);
+            }, mainSkier, ObstacleHandler.getPlainObstacle(), rhino);
+        }); 
     };
 
     initGame(gameLoop);

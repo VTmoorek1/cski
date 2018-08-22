@@ -1,10 +1,17 @@
+'use strict';
+
 import GameObject from './gameobject.js';
 
+/**
+* skier.js: Class representing the skier in the game
+* 
+*/
 class Skier extends GameObject {
 
     constructor() {
         super();
 
+        // Skier has direction and speed
         this.skierDirection = DIRECTION.RIGHT;
         this.skierSpeed = 8;
         this.skierJumpAsset = 'skierJump1';
@@ -23,6 +30,10 @@ class Skier extends GameObject {
         };
     }
     
+    /**
+    * reset(): reset skier to original position direction and speed
+    *  
+    */
     reset () {
         this.skierDirection = DIRECTION.RIGHT;
         this.skierSpeed = 8;
@@ -30,6 +41,10 @@ class Skier extends GameObject {
         this.y = 0;
     }
 
+    /**
+    * jumpSkier(): set the skier direction to jump and start the jump animation
+    *  
+    */
     jumpSkier()
     {
         this.skierDirection = DIRECTION.JUMP;
@@ -49,14 +64,24 @@ class Skier extends GameObject {
         },250);
     }
 
+    /**
+    * isJumping(): is the skier jumping
+    *  
+    * @return {boolean} is the skier diection jump
+    */
     isJumping()
     {
         return (this.skierDirection === DIRECTION.JUMP);
     }
 
+    /**
+    * getSkierAsset(): get the skier asset based on direction or jump asset
+    *  
+    * @return {string} the current skier asset
+    */
     getSkierAsset() {
 
-        var skierAsset = ASSET_ENUM[this.skierDirection];
+        var skierAsset = ASSET_ARRAY[this.skierDirection];
 
         if (this.skierDirection === DIRECTION.JUMP)
         {
@@ -66,6 +91,12 @@ class Skier extends GameObject {
         return skierAsset;
     }
 
+    /**
+    * getSkierRect(): get the skier rect
+    *  
+    * @param {number} gameWidth - the width of the game window
+    * @param {number} gameHeight - the height of the game window
+    */
     getSkierRect(gameWidth,gameHeight) {
         var skierAssetName = this.getSkierAsset();
         var skierImage = GameObject.loadedAssets[skierAssetName];
@@ -79,6 +110,13 @@ class Skier extends GameObject {
         return skierRect;
     }
 
+    /**
+    * draw(): draw the skier
+    * 
+    * @param {object} ctx - canvas context
+    * @param {multiple} args - first 2 args should be gamewidth and gameheight  
+    * 
+    */
     draw(ctx,...args) {
         var gameWidth = args[0];
         var gameHeight = args[1];
@@ -90,7 +128,11 @@ class Skier extends GameObject {
         ctx.drawImage(skierImage, xCo, yCo, skierImage.width, skierImage.height);
     }
 
-    moveSkier() {
+    /**
+    * move(): move the skier position based on direction and speed
+    *  
+    */
+    move() {
         switch(this.skierDirection) {
             case DIRECTION.LEFT_DOWN:
                 this.x -= Math.round(this.skierSpeed / 1.4142);
@@ -101,18 +143,24 @@ class Skier extends GameObject {
                 this.y += this.skierSpeed;
                 break;
             case DIRECTION.RIGHT_DOWN:
+                // Needed to add rounding here for unintended x,y values
                 this.x += Math.round(this.skierSpeed / 1.4142);
                 this.y += Math.round(this.skierSpeed / 1.4142);
                 break;
         }
     }
 
+    /**
+    * changeDirectionLeft(): move the skier direction left or move left
+    *  
+    */
     changeDirectionLeft()
     {
         if(this.skierDirection === DIRECTION.LEFT) {
             this.x -= this.skierSpeed;
         }
         else if (this.skierDirection === DIRECTION.CRASHED) {
+            // reset skier left if skier is crashed
             this.skierDirection = DIRECTION.LEFT;
         }
         else
@@ -121,6 +169,10 @@ class Skier extends GameObject {
         }
     }
 
+    /**
+    * changeDirectionRight(): change skier direction right or move right
+    *  
+    */
     changeDirectionRight() 
     {
         if(this.skierDirection === DIRECTION.RIGHT) {
@@ -131,21 +183,39 @@ class Skier extends GameObject {
         }
     }
 
+    /**
+    * changeDirectionDown(): move the skier direction down
+    *  
+    */
     changeDirectionDown()
     {
-        this.skierDirection = 3;
+        this.skierDirection = DIRECTION.DOWN;
     }
 
+    /**
+    * skierCrashed(): set the skier direction to crashed
+    *  
+    */
     skierCrashed()
     {
-        this.skierDirection = 0;
+        this.skierDirection = DIRECTION.CRASHED;
     }
 
+    /**
+    * getDirection(): move the skier direction left if able
+    * 
+    * @return {number} representing skier direction  
+    */
     getDirection()
     {
         return this.skierDirection;
     }
 
+    /**
+    * isMoving(): is the skier moving downhill
+    * 
+    * @return {boolean} is direction left down, down, or right down  
+    */
     isMoving()
     {
         return (this.skierDirection === DIRECTION.LEFT_DOWN || this.skierDirection === DIRECTION.DOWN ||
@@ -154,7 +224,7 @@ class Skier extends GameObject {
 
 };
 
-// Direction enum and freeze object changes
+// Direction enum for readability
 const DIRECTION = {
     "CRASHED": 0,
     "LEFT": 1,
@@ -167,12 +237,13 @@ const DIRECTION = {
 
 Skier.DIRECTION = DIRECTION;
 
-// Image name enum 
-const ASSET_ENUM = ['skierCrash','skierLeft','skierLeftDown','skierDown',
+// The skiers assets 
+const ASSET_ARRAY = ['skierCrash','skierLeft','skierLeftDown','skierDown',
     'skierRightDown','skierRight','skierJump'];
 
-Skier.ASSET_ENUM = ASSET_ENUM;
+Skier.ASSET_ARRAY = ASSET_ARRAY;
 
+// Ski jump assets in order of animation
 const SKI_JUMP = ['skierJump1','skierJump2','skierJump3',
     'skierJump4'];
 
